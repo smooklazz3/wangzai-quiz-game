@@ -39,6 +39,14 @@ body.screen-locked {
   touch-action: none;
 }
 
+body.kids-mode {
+  min-height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+  background: #f3dfbd;
+}
+
 button {
   min-width: 112px;
   min-height: 48px;
@@ -80,6 +88,15 @@ button:focus-visible,
   gap: 16px;
 }
 
+body.kids-mode .game-shell {
+  width: min(1280px, calc(100vw - 16px));
+  height: 100dvh;
+  min-height: 100dvh;
+  padding: max(8px, env(safe-area-inset-top)) max(0px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(0px, env(safe-area-inset-left));
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  gap: 8px;
+}
+
 .topbar {
   display: flex;
   align-items: end;
@@ -99,6 +116,10 @@ h1 {
   font-size: clamp(2rem, 5vw, 4.5rem);
   line-height: 1.02;
   letter-spacing: 0;
+}
+
+body.kids-mode h1 {
+  font-size: clamp(1.8rem, 4.2vw, 3.6rem);
 }
 
 .score-pill {
@@ -131,6 +152,16 @@ h1 {
   overflow: hidden;
   aspect-ratio: 16 / 9;
   touch-action: manipulation;
+}
+
+body.kids-mode .scene-wrap {
+  width: min(100%, calc((100dvh - 174px) * 1.7778));
+  max-width: 100%;
+  height: min(calc((100vw - 16px) * 0.5625), calc(100dvh - 174px));
+  min-height: 0;
+  margin: auto;
+  border-width: 5px;
+  box-shadow: 0 7px 0 var(--shadow);
 }
 
 .scene-image {
@@ -214,6 +245,17 @@ body.screen-locked .hotspot {
   flex-wrap: wrap;
 }
 
+body.kids-mode .controls {
+  gap: 8px;
+}
+
+body.kids-mode .controls button {
+  min-width: 132px;
+  min-height: 56px;
+  padding: 0 16px;
+  font-size: 1.05rem;
+}
+
 #speakBtn {
   background: #f7c75c;
 }
@@ -231,6 +273,15 @@ body.screen-locked .hotspot {
   color: #fffaf0;
 }
 
+#kidsModeBtn {
+  background: #88c4d8;
+}
+
+#kidsModeBtn.is-active {
+  background: #315d34;
+  color: #fffaf0;
+}
+
 .feedback {
   min-height: 58px;
   display: grid;
@@ -243,6 +294,12 @@ body.screen-locked .hotspot {
   text-align: center;
   font-size: clamp(1.05rem, 2.4vw, 1.5rem);
   font-weight: 800;
+}
+
+body.kids-mode .feedback {
+  min-height: 48px;
+  padding: 8px 14px;
+  font-size: clamp(1rem, 2vw, 1.3rem);
 }
 
 .feedback.success {
@@ -337,6 +394,11 @@ body.screen-locked .hotspot {
 
   button {
     flex: 1 1 136px;
+  }
+
+  body.kids-mode .controls button {
+    flex: 1 1 128px;
+    min-width: 0;
   }
 }
 

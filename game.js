@@ -8,6 +8,7 @@ const totalText = document.querySelector("#total");
 const speakBtn = document.querySelector("#speakBtn");
 const nextBtn = document.querySelector("#nextBtn");
 const lockBtn = document.querySelector("#lockBtn");
+const kidsModeBtn = document.querySelector("#kidsModeBtn");
 
 const items = {
   bird: { name: "鸟鸟", category: "小动物", image: "animals", box: [4.8, 31.5, 16.2, 22.5] },
@@ -79,6 +80,7 @@ let audioContext;
 let questionOrder = [];
 let orderCursor = 0;
 let isScreenLocked = false;
+let isKidsMode = false;
 let lockedScrollY = 0;
 
 totalText.textContent = `/ ${scenes.length}`;
@@ -96,7 +98,7 @@ function setFeedback(text, mode = "") {
   feedback.className = `feedback ${mode}`.trim();
 }
 
-function setScreenLock(shouldLock) {
+function setScreenLock(shouldLock, { silent = false } = {}) {
   isScreenLocked = shouldLock;
   if (shouldLock) {
     lockedScrollY = window.scrollY;
@@ -105,7 +107,9 @@ function setScreenLock(shouldLock) {
     lockBtn.textContent = "解除锁定";
     lockBtn.classList.add("is-locked");
     lockBtn.setAttribute("aria-pressed", "true");
-    setFeedback("屏幕已锁定，可以放心点击图片。", "success");
+    if (!silent) {
+      setFeedback("屏幕已锁定，可以放心点击图片。", "success");
+    }
     return;
   }
 
@@ -115,12 +119,74 @@ function setScreenLock(shouldLock) {
   lockBtn.textContent = "锁定屏幕";
   lockBtn.classList.remove("is-locked");
   lockBtn.setAttribute("aria-pressed", "false");
-  setFeedback("屏幕已解锁。");
+  if (!silent) {
+    setFeedback("屏幕已解锁。");
+  }
 }
 
 function preventLockedScroll(event) {
   if (!isScreenLocked) return;
   event.preventDefault();
+}
+
+function fullscreenElement() {
+  return document.fullscreenElement || document.webkitFullscreenElement;
+}
+
+async function requestAppFullscreen() {
+  const target = document.documentElement;
+  try {
+    if (target.requestFullscreen) {
+      await target.requestFullscreen();
+      return true;
+    }
+    if (target.webkitRequestFullscreen) {
+      target.webkitRequestFullscreen();
+      return true;
+    }
+  } catch (error) {
+    return false;
+  }
+  return false;
+}
+
+async function exitAppFullscreen() {
+  try {
+    if (document.exitFullscreen && fullscreenElement()) {
+      await document.exitFullscreen();
+      return;
+    }
+    if (document.webkitExitFullscreen && fullscreenElement()) {
+      document.webkitExitFullscreen();
+    }
+  } catch (error) {
+    // Some iPad browsers reject fullscreen changes; CSS game mode still works.
+  }
+}
+
+async function setKidsMode(shouldEnable) {
+  isKidsMode = shouldEnable;
+  document.body.classList.toggle("kids-mode", shouldEnable);
+  kidsModeBtn.classList.toggle("is-active", shouldEnable);
+  kidsModeBtn.setAttribute("aria-pressed", shouldEnable ? "true" : "false");
+  kidsModeBtn.textContent = shouldEnable ? "退出儿童模式" : "儿童模式";
+
+  if (shouldEnable) {
+    setScreenLock(true, { silent: true });
+    await requestAppFullscreen();
+    setFeedback("儿童模式已开启，屏幕已锁定。", "success");
+    return;
+  }
+
+  await exitAppFullscreen();
+  setScreenLock(false, { silent: true });
+  setFeedback("已退出儿童模式。");
+}
+
+function syncFullscreenState() {
+  if (isKidsMode && !fullscreenElement()) {
+    document.body.classList.add("kids-mode");
+  }
 }
 
 function speak(text) {
@@ -344,9 +410,18 @@ function handleGuess(button) {
 
 speakBtn.addEventListener("click", askQuestion);
 nextBtn.addEventListener("click", nextScene);
-lockBtn.addEventListener("click", () => setScreenLock(!isScreenLocked));
+lockBtn.addEventListener("click", () => {
+  if (isKidsMode) {
+    setFeedback("儿童模式会保持屏幕锁定。", "success");
+    return;
+  }
+  setScreenLock(!isScreenLocked);
+});
+kidsModeBtn.addEventListener("click", () => setKidsMode(!isKidsMode));
 document.addEventListener("touchmove", preventLockedScroll, { passive: false });
 document.addEventListener("gesturestart", preventLockedScroll, { passive: false });
+document.addEventListener("fullscreenchange", syncFullscreenState);
+document.addEventListener("webkitfullscreenchange", syncFullscreenState);
 
 window.addEventListener("load", () => {
   buildQuestionOrder();
