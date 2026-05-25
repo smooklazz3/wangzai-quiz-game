@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>旺仔找一找</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="game-shell" aria-live="polite">
+      <section class="topbar" aria-label="游戏状态">
+        <div>
+          <p class="eyebrow" id="categoryText">手绘找一找</p>
+          <h1 id="questionText">准备开始</h1>
+        </div>
+        <div class="score-pill" aria-label="进度">
+          <span id="score">1</span>
+          <small id="total">/ 24</small>
+        </div>
+      </section>
+
+      <section class="scene-wrap" aria-label="互动图片，请点击答案">
+        <img id="sceneImage" class="scene-image" src="./assets/scene-animals.png" alt="手绘找一找场景" />
+        <div id="hotspotLayer" class="hotspot-layer" aria-label="点击答案区域"></div>
+      </section>
+
+      <section class="controls" aria-label="游戏操作">
+        <button id="speakBtn" type="button">再问一次</button>
+        <button id="nextBtn" type="button">换一题</button>
+      </section>
+
+      <div id="feedback" class="feedback" role="status">听问题，点一点图片里的答案。</div>
+    </main>
+
+    <script src="./game.js"></script>
+  </body>
+</html>
