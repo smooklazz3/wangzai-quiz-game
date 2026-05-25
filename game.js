@@ -7,6 +7,7 @@ const scoreText = document.querySelector("#score");
 const totalText = document.querySelector("#total");
 const speakBtn = document.querySelector("#speakBtn");
 const nextBtn = document.querySelector("#nextBtn");
+const lockBtn = document.querySelector("#lockBtn");
 
 const items = {
   bird: { name: "鸟鸟", category: "小动物", image: "animals", box: [4.8, 31.5, 16.2, 22.5] },
@@ -77,6 +78,8 @@ let canAnswer = true;
 let audioContext;
 let questionOrder = [];
 let orderCursor = 0;
+let isScreenLocked = false;
+let lockedScrollY = 0;
 
 totalText.textContent = `/ ${scenes.length}`;
 
@@ -91,6 +94,33 @@ function currentTarget() {
 function setFeedback(text, mode = "") {
   feedback.textContent = text;
   feedback.className = `feedback ${mode}`.trim();
+}
+
+function setScreenLock(shouldLock) {
+  isScreenLocked = shouldLock;
+  if (shouldLock) {
+    lockedScrollY = window.scrollY;
+    document.body.classList.add("screen-locked");
+    document.body.style.top = `-${lockedScrollY}px`;
+    lockBtn.textContent = "解除锁定";
+    lockBtn.classList.add("is-locked");
+    lockBtn.setAttribute("aria-pressed", "true");
+    setFeedback("屏幕已锁定，可以放心点击图片。", "success");
+    return;
+  }
+
+  document.body.classList.remove("screen-locked");
+  document.body.style.top = "";
+  window.scrollTo(0, lockedScrollY);
+  lockBtn.textContent = "锁定屏幕";
+  lockBtn.classList.remove("is-locked");
+  lockBtn.setAttribute("aria-pressed", "false");
+  setFeedback("屏幕已解锁。");
+}
+
+function preventLockedScroll(event) {
+  if (!isScreenLocked) return;
+  event.preventDefault();
 }
 
 function speak(text) {
@@ -314,6 +344,9 @@ function handleGuess(button) {
 
 speakBtn.addEventListener("click", askQuestion);
 nextBtn.addEventListener("click", nextScene);
+lockBtn.addEventListener("click", () => setScreenLock(!isScreenLocked));
+document.addEventListener("touchmove", preventLockedScroll, { passive: false });
+document.addEventListener("gesturestart", preventLockedScroll, { passive: false });
 
 window.addEventListener("load", () => {
   buildQuestionOrder();

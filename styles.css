@@ -29,6 +29,16 @@ body {
     sans-serif;
 }
 
+body.screen-locked {
+  position: fixed;
+  right: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
 button {
   min-width: 112px;
   min-height: 48px;
@@ -120,6 +130,7 @@ h1 {
   box-shadow: 0 12px 0 var(--shadow);
   overflow: hidden;
   aspect-ratio: 16 / 9;
+  touch-action: manipulation;
 }
 
 .scene-image {
@@ -152,6 +163,12 @@ h1 {
     background 160ms ease,
     box-shadow 160ms ease,
     transform 160ms ease;
+}
+
+body.screen-locked .scene-wrap,
+body.screen-locked .hotspot-layer,
+body.screen-locked .hotspot {
+  touch-action: none;
 }
 
 .hotspot::after {
@@ -203,6 +220,15 @@ h1 {
 
 #nextBtn {
   background: #b9d89b;
+}
+
+#lockBtn {
+  background: #f4d8b5;
+}
+
+#lockBtn.is-locked {
+  background: #bd5750;
+  color: #fffaf0;
 }
 
 .feedback {
