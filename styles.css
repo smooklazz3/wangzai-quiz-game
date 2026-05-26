@@ -238,6 +238,48 @@ body.screen-locked .hotspot {
   animation: tiny-shake 300ms ease;
 }
 
+.reward-burst {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.86);
+}
+
+.reward-burst span {
+  color: #ffd95c;
+  font-size: clamp(4rem, 13vw, 10rem);
+  line-height: 1;
+  opacity: 0;
+  text-shadow:
+    0 5px 0 rgba(94, 73, 28, 0.28),
+    0 0 18px rgba(255, 250, 205, 0.85);
+  -webkit-text-stroke: 4px rgba(91, 68, 25, 0.62);
+}
+
+.reward-burst.is-showing {
+  animation: reward-layer 1.45s ease both;
+}
+
+.reward-burst.is-showing span {
+  animation: reward-star 1.45s ease both;
+}
+
+.reward-burst.is-showing span:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.reward-burst.is-showing span:nth-child(2) {
+  animation-delay: 90ms;
+}
+
+.reward-burst.is-showing span:nth-child(3) {
+  animation-delay: 180ms;
+}
+
 .controls {
   display: flex;
   justify-content: center;
@@ -316,6 +358,13 @@ body.kids-mode .feedback {
   background: #fff1c8;
 }
 
+.feedback.reward {
+  border-style: solid;
+  border-color: #d9a520;
+  color: #664512;
+  background: #fff4bd;
+}
+
 @keyframes happy-bounce {
   0%,
   100% {
@@ -352,6 +401,41 @@ body.kids-mode .feedback {
     border-color: rgba(255, 247, 190, 0);
     opacity: 0;
     transform: scale(1.28);
+  }
+}
+
+@keyframes reward-layer {
+  0% {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  14%,
+  76% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes reward-star {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) rotate(-12deg) scale(0.55);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-18px) rotate(8deg) scale(1.08);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(0) rotate(-3deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-72px) rotate(14deg) scale(0.9);
   }
 }
 

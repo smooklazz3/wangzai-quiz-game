@@ -3,6 +3,7 @@ const hotspotLayer = document.querySelector("#hotspotLayer");
 const questionText = document.querySelector("#questionText");
 const categoryText = document.querySelector("#categoryText");
 const feedback = document.querySelector("#feedback");
+const rewardBurst = document.querySelector("#rewardBurst");
 const scoreText = document.querySelector("#score");
 const totalText = document.querySelector("#total");
 const speakBtn = document.querySelector("#speakBtn");
@@ -69,11 +70,13 @@ const scenes = [
 ];
 
 const imageFiles = {
-  animals: "./assets/scene-animals.png",
-  construction: "./assets/scene-construction.png",
-  vehicles: "./assets/scene-vehicles.png",
-  fruits: "./assets/scene-fruits.png",
+  animals: "./assets/scene-animals-v2.png",
+  construction: "./assets/scene-construction-v2.png",
+  vehicles: "./assets/scene-vehicles-v2.png",
+  fruits: "./assets/scene-fruits-v2.png",
 };
+
+const QUESTIONS_PER_SCENE = 3;
 
 let canAnswer = true;
 let audioContext;
@@ -82,6 +85,8 @@ let orderCursor = 0;
 let isScreenLocked = false;
 let isKidsMode = false;
 let lockedScrollY = 0;
+let preferredVoice;
+let correctStreak = 0;
 
 totalText.textContent = `/ ${scenes.length}`;
 
@@ -96,6 +101,15 @@ function currentTarget() {
 function setFeedback(text, mode = "") {
   feedback.textContent = text;
   feedback.className = `feedback ${mode}`.trim();
+}
+
+function loadPreferredVoice() {
+  if (!("speechSynthesis" in window)) return;
+  const voices = window.speechSynthesis.getVoices();
+  preferredVoice =
+    voices.find((voice) => voice.lang === "zh-CN" && /Xiaoxiao|Tingting|Meijia|Sinji|Yaoyao|Yating/i.test(voice.name)) ||
+    voices.find((voice) => voice.lang === "zh-CN") ||
+    voices.find((voice) => voice.lang && voice.lang.startsWith("zh"));
 }
 
 function setScreenLock(shouldLock, { silent = false } = {}) {
@@ -197,8 +211,16 @@ function speak(text) {
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "zh-CN";
-  utterance.rate = 0.86;
-  utterance.pitch = 1.08;
+  if (!preferredVoice) {
+    loadPreferredVoice();
+  }
+  if (preferredVoice) {
+    utterance.voice = preferredVoice;
+    utterance.lang = preferredVoice.lang;
+  }
+  utterance.rate = 0.9;
+  utterance.pitch = 1.03;
+  utterance.volume = 1;
   window.speechSynthesis.speak(utterance);
 }
 
@@ -315,6 +337,22 @@ function playItemSound(id) {
   playTone({ frequency: 520, duration: 0.08, type: "triangle", volume: 0.07 });
 }
 
+function playRewardSound() {
+  playTone({ frequency: 523, duration: 0.12, type: "triangle", volume: 0.11 });
+  playTone({ frequency: 659, start: 0.13, duration: 0.12, type: "triangle", volume: 0.11 });
+  playTone({ frequency: 784, start: 0.26, duration: 0.18, type: "triangle", volume: 0.12 });
+  playNoise({ start: 0.08, duration: 0.28, volume: 0.055, frequency: 1800 });
+}
+
+function showReward() {
+  rewardBurst.classList.remove("is-showing");
+  void rewardBurst.offsetWidth;
+  rewardBurst.classList.add("is-showing");
+  playRewardSound();
+  setFeedback("连续答对三题，获得小星星！", "reward");
+  window.setTimeout(() => speak("太棒啦，获得小星星！"), 420);
+}
+
 function question() {
   return `旺仔，${currentTarget().name}在哪里？`;
 }
@@ -333,8 +371,32 @@ function shuffle(values) {
 }
 
 function buildQuestionOrder(previousTargetId) {
-  const indices = scenes.map((_, index) => index);
-  questionOrder = shuffle(indices);
+  const byImage = scenes.reduce((groups, sceneId, index) => {
+    const imageKey = items[sceneId].image;
+    groups[imageKey] = groups[imageKey] || [];
+    groups[imageKey].push(index);
+    return groups;
+  }, {});
+
+  const chunks = Object.entries(byImage).flatMap(([imageKey, indices]) => {
+    const shuffled = shuffle(indices);
+    const imageChunks = [];
+    for (let i = 0; i < shuffled.length; i += QUESTIONS_PER_SCENE) {
+      imageChunks.push({ imageKey, indices: shuffled.slice(i, i + QUESTIONS_PER_SCENE) });
+    }
+    return imageChunks;
+  });
+
+  const remaining = shuffle(chunks);
+  const orderedChunks = [];
+  while (remaining.length > 0) {
+    const lastImage = orderedChunks.length ? orderedChunks[orderedChunks.length - 1].imageKey : undefined;
+    let nextIndex = remaining.findIndex((chunk) => chunk.imageKey !== lastImage);
+    if (nextIndex === -1) nextIndex = 0;
+    orderedChunks.push(remaining.splice(nextIndex, 1)[0]);
+  }
+
+  questionOrder = orderedChunks.flatMap((chunk) => chunk.indices);
   if (previousTargetId && scenes[questionOrder[0]] === previousTargetId && questionOrder.length > 1) {
     [questionOrder[0], questionOrder[1]] = [questionOrder[1], questionOrder[0]];
   }
@@ -396,16 +458,24 @@ function handleGuess(button) {
 
   if (clickedId === currentTargetId()) {
     canAnswer = false;
+    correctStreak += 1;
     button.classList.add("is-correct");
     setFeedback("旺仔真棒！", "success");
+    if (correctStreak > 0 && correctStreak % 3 === 0) {
+      window.setTimeout(showReward, 380);
+    }
     window.setTimeout(() => speak("旺仔真棒！"), 420);
-    window.setTimeout(nextScene, 1500);
+    window.setTimeout(nextScene, correctStreak % 3 === 0 ? 2300 : 1500);
     return;
   }
 
+  correctStreak = 0;
   button.classList.add("is-wrong");
-  setFeedback("再找找，它还在图片里呢。", "try-again");
-  window.setTimeout(() => speak("再找找，它还在图片里呢。"), 360);
+  const clickedName = items[clickedId].name;
+  const targetName = currentTarget().name;
+  const message = `这是${clickedName}，我们找${targetName}哦。`;
+  setFeedback(message, "try-again");
+  window.setTimeout(() => speak(message), 360);
 }
 
 speakBtn.addEventListener("click", askQuestion);
@@ -422,6 +492,14 @@ document.addEventListener("touchmove", preventLockedScroll, { passive: false });
 document.addEventListener("gesturestart", preventLockedScroll, { passive: false });
 document.addEventListener("fullscreenchange", syncFullscreenState);
 document.addEventListener("webkitfullscreenchange", syncFullscreenState);
+if ("speechSynthesis" in window) {
+  loadPreferredVoice();
+  if (window.speechSynthesis.addEventListener) {
+    window.speechSynthesis.addEventListener("voiceschanged", loadPreferredVoice);
+  } else {
+    window.speechSynthesis.onvoiceschanged = loadPreferredVoice;
+  }
+}
 
 window.addEventListener("load", () => {
   buildQuestionOrder();
