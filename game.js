@@ -106,10 +106,12 @@ function setFeedback(text, mode = "") {
 function loadPreferredVoice() {
   if (!("speechSynthesis" in window)) return;
   const voices = window.speechSynthesis.getVoices();
+  const isMandarinVoice = (voice) =>
+    voice.lang === "zh-CN" &&
+    !/粤|Cantonese|Hong Kong|HongKong|HK|zh-HK|yue/i.test(`${voice.name} ${voice.lang}`);
   preferredVoice =
-    voices.find((voice) => voice.lang === "zh-CN" && /Xiaoxiao|Tingting|Meijia|Sinji|Yaoyao|Yating/i.test(voice.name)) ||
-    voices.find((voice) => voice.lang === "zh-CN") ||
-    voices.find((voice) => voice.lang && voice.lang.startsWith("zh"));
+    voices.find((voice) => isMandarinVoice(voice) && /Xiaoxiao|Tingting|Yaoyao|Mandarin|普通话|Putonghua/i.test(voice.name)) ||
+    voices.find(isMandarinVoice);
 }
 
 function setScreenLock(shouldLock, { silent = false } = {}) {
@@ -206,7 +208,7 @@ function syncFullscreenState() {
 function speak(text) {
   if (!("speechSynthesis" in window)) {
     setFeedback(text);
-    return;
+    return Promise.resolve();
   }
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
@@ -221,7 +223,18 @@ function speak(text) {
   utterance.rate = 0.9;
   utterance.pitch = 1.03;
   utterance.volume = 1;
-  window.speechSynthesis.speak(utterance);
+  return new Promise((resolve) => {
+    let didFinish = false;
+    const finish = () => {
+      if (didFinish) return;
+      didFinish = true;
+      resolve();
+    };
+    utterance.onend = finish;
+    utterance.onerror = finish;
+    window.speechSynthesis.speak(utterance);
+    window.setTimeout(finish, Math.max(1800, text.length * 260));
+  });
 }
 
 function getAudioContext() {
@@ -350,7 +363,11 @@ function showReward() {
   rewardBurst.classList.add("is-showing");
   playRewardSound();
   setFeedback("连续答对三题，获得小星星！", "reward");
-  window.setTimeout(() => speak("太棒啦，获得小星星！"), 420);
+  return new Promise((resolve) => {
+    window.setTimeout(() => {
+      speak("太棒啦，获得小星星！").then(resolve);
+    }, 420);
+  });
 }
 
 function question() {
@@ -447,6 +464,16 @@ function nextScene() {
   askQuestion();
 }
 
+async function finishCorrectAnswer() {
+  await new Promise((resolve) => window.setTimeout(resolve, 360));
+  await speak("旺仔真棒！");
+  if (correctStreak > 0 && correctStreak % 3 === 0) {
+    await showReward();
+  }
+  await new Promise((resolve) => window.setTimeout(resolve, 260));
+  nextScene();
+}
+
 function handleGuess(button) {
   if (!canAnswer) return;
   const clickedId = button.dataset.item;
@@ -461,11 +488,7 @@ function handleGuess(button) {
     correctStreak += 1;
     button.classList.add("is-correct");
     setFeedback("旺仔真棒！", "success");
-    if (correctStreak > 0 && correctStreak % 3 === 0) {
-      window.setTimeout(showReward, 380);
-    }
-    window.setTimeout(() => speak("旺仔真棒！"), 420);
-    window.setTimeout(nextScene, correctStreak % 3 === 0 ? 2300 : 1500);
+    finishCorrectAnswer();
     return;
   }
 
