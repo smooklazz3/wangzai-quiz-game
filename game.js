@@ -39,6 +39,27 @@ const items = {
   watermelon: { name: "西瓜", category: "水果", image: "fruits", box: [68.5, 20.8, 27.0, 36.0] },
   orange: { name: "橙子", category: "水果", image: "fruits", box: [24.0, 52.0, 17.0, 31.5] },
   grapes: { name: "葡萄", category: "水果", image: "fruits", box: [43.8, 55.2, 27.2, 28.8] },
+
+  airplane: { name: "飞机", category: "交通工具", image: "transport", box: [3.0, 21.0, 35.5, 25.5] },
+  helicopter: { name: "直升机", category: "交通工具", image: "transport", box: [39.2, 17.0, 25.5, 28.0] },
+  balloon: { name: "热气球", category: "交通工具", image: "transport", box: [68.0, 4.5, 17.5, 39.5] },
+  rocket: { name: "火箭", category: "交通工具", image: "transport", box: [87.7, 27.0, 10.0, 40.0] },
+  boat: { name: "小船", category: "交通工具", image: "transport", box: [13.0, 64.0, 25.0, 25.0] },
+  train: { name: "火车", category: "交通工具", image: "transport", box: [52.2, 62.0, 42.5, 27.0] },
+
+  bowl: { name: "碗", category: "家居物品", image: "home", box: [28.8, 39.0, 21.5, 22.0] },
+  chopsticks: { name: "筷子", category: "家居物品", image: "home", box: [35.0, 60.0, 24.5, 10.0] },
+  spoon: { name: "勺子", category: "家居物品", image: "home", box: [45.0, 62.0, 19.5, 10.5] },
+  fan: { name: "风扇", category: "家居物品", image: "home", box: [4.0, 29.0, 22.0, 48.0] },
+  lamp: { name: "台灯", category: "家居物品", image: "home", box: [56.0, 17.0, 18.5, 52.0] },
+  teddy: { name: "玩具熊", category: "家居物品", image: "home", box: [75.0, 32.0, 22.0, 51.0] },
+
+  slide: { name: "滑梯", category: "游乐场", image: "playground", box: [6.0, 26.0, 29.0, 40.0] },
+  swing: { name: "秋千", category: "游乐场", image: "playground", box: [38.0, 20.0, 27.0, 42.0] },
+  seesaw: { name: "跷跷板", category: "游乐场", image: "playground", box: [68.0, 53.0, 28.0, 25.0] },
+  sandbox: { name: "沙池", category: "游乐场", image: "playground", box: [3.0, 67.0, 33.0, 27.0] },
+  ball: { name: "球", category: "游乐场", image: "playground", box: [49.0, 69.0, 14.0, 19.0] },
+  kite: { name: "风筝", category: "游乐场", image: "playground", box: [78.0, 3.0, 17.0, 31.0] },
 };
 
 const scenes = [
@@ -67,6 +88,24 @@ const scenes = [
   "orange",
   "grapes",
   "dog",
+  "airplane",
+  "helicopter",
+  "balloon",
+  "rocket",
+  "boat",
+  "train",
+  "bowl",
+  "chopsticks",
+  "spoon",
+  "fan",
+  "lamp",
+  "teddy",
+  "slide",
+  "swing",
+  "seesaw",
+  "sandbox",
+  "ball",
+  "kite",
 ];
 
 const imageFiles = {
@@ -74,6 +113,9 @@ const imageFiles = {
   construction: "./assets/scene-construction-v2.png",
   vehicles: "./assets/scene-vehicles-v2.png",
   fruits: "./assets/scene-fruits-v2.png",
+  transport: "./assets/scene-transport.png",
+  home: "./assets/scene-home.png",
+  playground: "./assets/scene-playground.png",
 };
 
 const QUESTIONS_PER_SCENE = 3;
